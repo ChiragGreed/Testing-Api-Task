@@ -115,27 +115,30 @@ describe('taskService.getPaginated', () => {
     }
   });
 
-  // BUG: getPaginated computes offset as `page * limit` instead of
-  // `(page - 1) * limit`. Page 1 should return the first `limit` items
-  // (offset 0), but it currently skips the first `limit` items.
-  it('BUG: page 1 skips the first "limit" items instead of starting at offset 0', () => {
+  // Fixed: getPaginated now computes offset as `(page - 1) * limit`, so
+  // page 1 starts at offset 0 and returns the first `limit` items.
+  it('page 1 returns the first "limit" items starting at offset 0', () => {
     const page1 = taskService.getPaginated(1, 10);
 
-    // Documents current (buggy) behavior: offset = 1 * 10 = 10, so page 1
-    // actually returns items 11-20 ("Task 11".."Task 20"), not items 1-10.
-    expect(page1[0].title).toBe('Task 11');
+    expect(page1[0].title).toBe('Task 1');
     expect(page1).toHaveLength(10);
   });
 
   it('returns the requested page size', () => {
-    const page = taskService.getPaginated(0, 5);
+    const page = taskService.getPaginated(1, 5);
     expect(page).toHaveLength(5);
   });
 
+  it('returns the correct items for page 2', () => {
+    const page2 = taskService.getPaginated(2, 10);
+
+    expect(page2[0].title).toBe('Task 11');
+    expect(page2).toHaveLength(10);
+  });
+
   it('returns fewer items on the last page when total is not evenly divisible', () => {
-    // With the current offset formula, page=2, limit=10 -> offset 20,
-    // leaving 5 of the 25 items.
-    const page = taskService.getPaginated(2, 10);
+    // page=3, limit=10 -> offset 20, leaving 5 of the 25 items.
+    const page = taskService.getPaginated(3, 10);
     expect(page).toHaveLength(5);
   });
 

@@ -97,11 +97,20 @@ describe('GET /tasks', () => {
     const res = await request(app).get('/tasks?page=1&limit=5');
 
     expect(res.status).toBe(200);
-    // Note: due to the pagination offset bug (see taskService tests),
-    // this does not currently return the first 5 tasks — it documents
-    // whatever the current implementation actually returns.
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeLessThanOrEqual(5);
+    expect(res.body).toHaveLength(5);
+    expect(res.body[0].title).toBe('Task 1');
+  });
+
+  it('returns the second page of results', async () => {
+    for (let i = 1; i <= 15; i++) {
+      await request(app).post('/tasks').send({ title: `Task ${i}` });
+    }
+
+    const res = await request(app).get('/tasks?page=2&limit=5');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(5);
+    expect(res.body[0].title).toBe('Task 6');
   });
 });
 
