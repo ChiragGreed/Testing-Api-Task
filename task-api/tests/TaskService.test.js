@@ -108,6 +108,43 @@ describe('taskService.getByStatus', () => {
   });
 });
 
+describe('taskService.getFiltered', () => {
+  beforeEach(() => {
+    for (let i = 1; i <= 8; i++) {
+      taskService.create({ title: `Todo ${i}`, status: 'todo' });
+    }
+    for (let i = 1; i <= 3; i++) {
+      taskService.create({ title: `Done ${i}`, status: 'done' });
+    }
+  });
+
+  it('filters by exact status before paginating', () => {
+    const result = taskService.getFiltered('todo', 1, 5);
+
+    expect(result).toHaveLength(5);
+    expect(result.every((t) => t.status === 'todo')).toBe(true);
+    expect(result[0].title).toBe('Todo 1');
+  });
+
+  it('returns the second page of the filtered set', () => {
+    const result = taskService.getFiltered('todo', 2, 5);
+
+    expect(result).toHaveLength(3);
+    expect(result[0].title).toBe('Todo 6');
+  });
+
+  it('uses exact status matching, not substring matching', () => {
+    // Unlike getByStatus, this should not match "done" when querying "do".
+    const result = taskService.getFiltered('do', 1, 20);
+    expect(result).toEqual([]);
+  });
+
+  it('paginates all tasks when status is falsy', () => {
+    const result = taskService.getFiltered(undefined, 1, 5);
+    expect(result).toHaveLength(5);
+  });
+});
+
 describe('taskService.getPaginated', () => {
   beforeEach(() => {
     for (let i = 1; i <= 25; i++) {
@@ -241,6 +278,7 @@ describe('taskService.assignTask', () => {
     const created = taskService.create({ title: 'Assign me' });
 
     const assigned = taskService.assignTask(created.id, 'Priya');
+
     expect(assigned.assignee).toBe('Priya');
   });
 

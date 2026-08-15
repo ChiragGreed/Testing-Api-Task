@@ -8,6 +8,12 @@ const findById = (id) => tasks.find((t) => t.id === id);
 
 const getByStatus = (status) => tasks.filter((t) => t.status.includes(status));
 
+const getFiltered = (status, page, limit) => {
+  const filtered = status ? tasks.filter((t) => t.status === status) : [...tasks];
+  const offset = (page - 1) * limit;
+  return filtered.slice(offset, offset + limit);
+};
+
 const getPaginated = (page, limit) => {
   const offset = (page - 1) * limit;
   return tasks.slice(offset, offset + limit);
@@ -93,6 +99,7 @@ module.exports = {
   getAll,
   findById,
   getByStatus,
+  getFiltered,
   getPaginated,
   getStats,
   create,

@@ -112,6 +112,22 @@ describe('GET /tasks', () => {
     expect(res.body).toHaveLength(5);
     expect(res.body[0].title).toBe('Task 6');
   });
+
+  it('combines status filtering with pagination', async () => {
+    for (let i = 1; i <= 8; i++) {
+      await request(app).post('/tasks').send({ title: `Todo ${i}`, status: 'todo' });
+    }
+    for (let i = 1; i <= 3; i++) {
+      await request(app).post('/tasks').send({ title: `Done ${i}`, status: 'done' });
+    }
+
+    const res = await request(app).get('/tasks?status=todo&page=2&limit=5');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(3);
+    expect(res.body.every((t) => t.status === 'todo')).toBe(true);
+    expect(res.body[0].title).toBe('Todo 6');
+  });
 });
 
 describe('GET /tasks/stats', () => {
@@ -156,9 +172,7 @@ describe('PUT /tasks/:id', () => {
   it('returns 400 when the update payload is invalid', async () => {
     const created = await request(app).post('/tasks').send({ title: 'Original' });
 
-    const res = await request(app)
-      .put(`/tasks/${created.body.id}`)
-      .send({ status: 'not-a-real-status' });
+    const res = await request(app).put(`/tasks/${created.body.id}`).send({ status: 'not-a-real-status' });
 
     expect(res.status).toBe(400);
   });
