@@ -236,6 +236,28 @@ describe('taskService.remove', () => {
   });
 });
 
+describe('taskService.assignTask', () => {
+  it('sets the assignee on an existing task', () => {
+    const created = taskService.create({ title: 'Assign me' });
+
+    const assigned = taskService.assignTask(created.id, 'Priya');
+    expect(assigned.assignee).toBe('Priya');
+  });
+
+  it('returns null when the id does not exist', () => {
+    expect(taskService.assignTask('missing-id', 'Priya')).toBeNull();
+  });
+
+  it('allows re-assigning a task that already has an assignee', () => {
+    const created = taskService.create({ title: 'Reassign me' });
+    taskService.assignTask(created.id, 'Priya');
+
+    const reassigned = taskService.assignTask(created.id, 'Rohit');
+
+    expect(reassigned.assignee).toBe('Rohit');
+  });
+});
+
 describe('taskService.completeTask', () => {
   it('sets status to done and stamps completedAt', () => {
     const created = taskService.create({ title: 'Finish me', priority: 'high' });
